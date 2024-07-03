@@ -90,17 +90,20 @@ resource "aws_instance" "web" {
                 # Instalação do PostgreSQL
                 sudo yum install -y postgresql-server postgresql-contrib
                 sudo postgresql-setup initdb
+
+                # Configuração da autenticação do PostgreSQL para aceitar senhas
                 sudo sed -i "s/ident/md5/" /var/lib/pgsql/data/pg_hba.conf
-                echo "ALTER USER postgres PASSWORD 'postgres';" | sudo -u postgres psql
-                echo "listen_addresses = 'localhost'" | sudo tee -a /var/lib/pgsql/data/postgresql.conf
                 sudo systemctl enable postgresql
                 sudo systemctl start postgresql
 
+                # Define a senha para o usuário postgres
+                sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+
                 # Instalação de dependências adicionais
                 sudo yum install -y python3
-                curl -O https://bootstrap.pypa.io/pip/3.7/get-pip.py
-                sudo python3.7 get-pip.py
-                pip install boto3
+                curl -O https://bootstrap.pypa.io/get-pip.py
+                sudo python3 get-pip.py
+                sudo pip install boto3
 
                 # Criação do arquivo index.php
                 echo '<?php echo "Hello World"; ?>' > /home/ec2-user/index.php
