@@ -103,7 +103,7 @@ resource "aws_instance" "web" {
                 sudo yum install -y python3
                 curl -O https://bootstrap.pypa.io/get-pip.py
                 sudo python3 get-pip.py
-                sudo pip install boto3
+                pip install boto3
 
                 # Criação do arquivo index.php
                 echo '<?php echo "Hello World"; ?>' > /home/ec2-user/index.php
