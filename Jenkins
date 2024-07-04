@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCESS_KEY_ID = 'ID'
+        AWS_SECRET_ACCESS_KEY = 'Secret'
+        S3_BUCKET = 'postgres-backups-bucket1'
+        PHP_FILE = 'index.php'
+    }
+
+    stages {
+        stage('Fetch PHP File from S3') {
+            steps {
+                script {
+                    def dockerImage = docker.image('amazon/aws-cli')
+                    dockerImage.inside("-v /var/jenkins_home/.aws:/root/.aws") {
+                        sh "aws s3 cp s3://${S3_BUCKET}/${PHP_FILE} /home/ec2-user/${PHP_FILE}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                        echo 'FROM php:7.4-apache' > /home/ec2-user/Dockerfile
+                        echo 'COPY ${PHP_FILE} /var/www/html/' >> /home/ec2-user/Dockerfile
+                    '''
+                    sh 'docker build -t php-app /home/ec2-user'
+                }
+            }
+        }
+
+        stage('Deploy to Apache Container') {
+            steps {
+                script {
+                    sh '''
+                        if [ "$(docker ps -q -f name=php-app)" ]; then
+                            docker stop php-app
+                            docker rm php-app
+                        fi
+                    '''
+                    sh 'docker run -d -p 80:80 --name php-app php-app'
+                }
+            }
+        }
+    }
+}

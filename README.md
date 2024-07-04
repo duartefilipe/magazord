@@ -53,3 +53,9 @@ Documentação dos passos executados durante a realização das questões;
 Arquivo XML do projeto criado no Jenkins.
 Envio do teste
 Suba o repositório no seu Github e envie o link diretamente para o seu recrutador. Obs.: Não serão aceitos alterações após o envio.
+
+Passos:
+1. criação da VPC no arquivo main.tf com todas as configurações necessárias (Docker, Postgres com configuração, Python...)
+2. Criação do container que irá receber o index.php (Hello World!)
+3. Criação do Script de backup
+4. Criação da pipeline

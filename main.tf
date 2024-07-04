@@ -96,14 +96,25 @@ resource "aws_instance" "web" {
                 sudo systemctl enable postgresql
                 sudo systemctl start postgresql
 
+                # Configuração da autenticação do PostgreSQL para aceitar senhas e conexões apenas da máquina local
+                echo "host    all             all             127.0.0.1/32            md5" | sudo tee -a /var/lib/pgsql/data/pg_hba.conf
+                echo "host    all             all             ::1/128                 md5" | sudo tee -a /var/lib/pgsql/data/pg_hba.conf
+                sudo systemctl restart postgresql
+
                 # Define a senha para o usuário postgres
                 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+
+                # Cria o banco de dados testdb e a tabela table1
+                sudo -u postgres psql -c "CREATE DATABASE testdb;"
+                sudo -u postgres psql -d testdb -c "CREATE TABLE table1 (column1 integer, column2 integer);"
+                sudo -u postgres psql -d testdb -c "INSERT INTO table1 (column1) SELECT a.column1 FROM generate_series(1, 1000000) AS a (column1);"
+
 
                 # Instalação de dependências adicionais
                 sudo yum install -y python3
                 curl -O https://bootstrap.pypa.io/get-pip.py
                 sudo python3 get-pip.py
-                pip install boto3
+                sudo pip install boto3
 
                 # Criação do arquivo index.php
                 echo '<?php echo "Hello World"; ?>' > /home/ec2-user/index.php
@@ -120,6 +131,8 @@ resource "aws_instance" "web" {
 
                 # Subir o Jenkins em um container Docker
                 sudo docker run -d -p 8081:8080 --name jenkins --restart unless-stopped jenkins/jenkins:lts
+                
+                wget https://raw.githubusercontent.com/duartefilipe/magazord/main/script_backup_postgres.py
 
                 echo "Docker, PostgreSQL, and Jenkins installation and configuration completed." | sudo tee /var/log/user-data.log
                 EOF
