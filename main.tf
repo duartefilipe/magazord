@@ -134,7 +134,7 @@ resource "aws_instance" "web" {
                 
                 wget https://raw.githubusercontent.com/duartefilipe/magazord/main/script_backup_postgres.py
 
-                echo "Docker, PostgreSQL, and Jenkins installation and configuration completed." | sudo tee /var/log/user-data.log
+                echo "Docker, PostgreSQL e Jenkins." | sudo tee /var/log/user-data.log
                 EOF
 }
 
